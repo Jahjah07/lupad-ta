@@ -1,6 +1,6 @@
 # LUPAD-Ta Travel & Tours
 
-Next.js App Router with TypeScript and a tropical travel funnel inspired by the supplied design reference. The responsive site includes 14 package pages, destination listings, a shared header, inquiry forms, and system dark mode.
+Next.js App Router with TypeScript and a tropical travel funnel inspired by the supplied design reference. The responsive site includes 14 package pages, destination listings, a shared header, inquiry forms, and consistent light branding across devices.
 
 ## Local development
 
@@ -9,6 +9,7 @@ Run npm install, then npm run dev. Open http://localhost:3000.
 Edit app/page.tsx for the homepage, app/tours-data.ts for package content, and app/globals.css for styles.
 Tour flyers are in public/packages, destination photography in public/assets, and the header logo in public/logo.png.
 Header Tours and Destinations open listing pages; About and Contact link to homepage sections, and Inquire Now jumps to the inquiry form.
+The mobile Menu button animates from a hamburger to an X and closes on Escape. Native CSS provides hero entrances, scroll reveals where supported, and mouse hover effects; reduced-motion preferences disable animations, and older browsers keep content visible.
 The form opens a prefilled email draft in the visitor's email app; visitors must send it there. Facebook and phone are also available.
 Messenger is available directly from the inquiry form and contact section. Direct form delivery, lead storage, and verified on-page reviews are pending a service and review source.
 Destination listings include descriptions and counts, and combined packages appear under every destination they include.
