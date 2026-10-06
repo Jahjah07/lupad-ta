@@ -10,6 +10,9 @@ Edit app/page.tsx for the homepage, app/tours-data.ts for package content, and a
 Tour flyers are in public/packages, destination photography in public/assets, and the header logo in public/logo.png.
 Header Tours and Destinations open listing pages; About and Contact link to homepage sections, and Inquire Now jumps to the inquiry form.
 The form opens a prefilled email draft in the visitor's email app; visitors must send it there. Facebook and phone are also available.
+Messenger is available directly from the inquiry form and contact section. Direct form delivery, lead storage, and verified on-page reviews are pending a service and review source.
+Destination listings include descriptions and counts, and combined packages appear under every destination they include.
+Set NEXT_PUBLIC_SITE_URL to your deployed URL for social sharing metadata. On Vercel, VERCEL_PROJECT_PRODUCTION_URL is used automatically when no explicit URL is configured. Local development falls back to localhost.
 Featured package details are transcribed from the supplied flyers. Remaining packages display their original flyer and request a current quote. Day-by-day itineraries and pickup times require team confirmation.
 The PNG logo and Valencia, Apo Island, and Siquijor tour images were copied
 from Websites/Lupad-Ta, preserving the source project. The locally hosted Geist font in app/fonts is copied from the installed Next.js bundle.

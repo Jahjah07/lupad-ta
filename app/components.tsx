@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { destinations, tours, facebook } from './tours-data';
+import { destinations, tours, toursForDestination, facebook } from './tours-data';
 
 export function TourCards({ items = tours }: { items?: typeof tours }) {
   return <div className="tour-grid">{items.map(tour => <article className="tour-card" key={tour.slug}>
@@ -9,7 +9,11 @@ export function TourCards({ items = tours }: { items?: typeof tours }) {
   </article>)}</div>;
 }
 
-export function DestinationCards() {
+export function DestinationCards({ detailed = false }: { detailed?: boolean }) {
+  if (detailed) return <div className="destination-catalog">{destinations.map(place => <article className="destination-story" key={place.slug}>
+    <Link className="destination-story-photo" href={`/destinations/${place.slug}`} aria-label={`Explore ${place.name}`}><Image src={place.image} alt={place.alt} fill sizes="(max-width: 767px) 100vw, 600px" /></Link>
+    <div className="destination-story-body"><p className="tour-kicker">{place.themes}</p><h2><Link href={`/destinations/${place.slug}`}>{place.name}</Link></h2><p>{place.copy}</p><p className="destination-count">{toursForDestination(place.slug).length} {toursForDestination(place.slug).length === 1 ? 'package' : 'packages'} to explore</p><Link className="button gold" href={`/destinations/${place.slug}`}>Explore {place.name} <span aria-hidden="true">→</span></Link></div>
+  </article>)}</div>;
   return <div className="destination-grid">{destinations.map(place => <Link className="destination-card" href={`/destinations/${place.slug}`} key={place.slug}><Image src={place.image} alt={place.alt} fill sizes="(max-width: 639px) 100vw, 300px" /><span>{place.name}<span aria-hidden="true">→</span></span></Link>)}</div>;
 }
 
