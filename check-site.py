@@ -1,20 +1,67 @@
-from pathlib import Path
+"""Run against the local Next.js server: python check-site.py [base URL]."""
 from html.parser import HTMLParser
-from urllib.parse import urlparse
-root=Path(__file__).parent/'dist'
-class Check(HTMLParser):
-    def __init__(self): super().__init__(); self.ids=set(); self.refs=[]; self.tours=[]
-    def handle_starttag(self,tag,attrs):
-        a=dict(attrs)
-        if 'id' in a:self.ids.add(a['id'])
-        if 'data-tour' in a:self.tours.append(a['data-tour'])
-        for key in ('src','href'):
-            if key in a:self.refs.append(a[key])
-c=Check();c.feed((root/'index.html').read_text(encoding='utf-8-sig'))
-for ref in c.refs:
-    if ref.startswith('#'): assert ref[1:] in c.ids,ref
-    elif not urlparse(ref).scheme: assert (root/ref).is_file(),ref
-assert c.tours==['Dumaguete–Valencia','Manjuyod','Apo Island','Siquijor']
-assert 'assets/siquijor.jpg' in (root/'style.css').read_text(encoding='utf-8-sig')
-assert (root/'assets/siquijor.jpg').stat().st_size>1000
-print('PASS: four tour controls, section links, local assets and hero image')
+from urllib.request import urlopen
+from urllib.parse import quote
+from urllib.error import HTTPError
+import sys, subprocess
+from pathlib import Path
+
+base = sys.argv[1] if len(sys.argv) > 1 else 'http://localhost:3000'
+
+class Page(HTMLParser):
+    def __init__(self, path):
+        super().__init__()
+        self.ids, self.links, self.fields = set(), [], {}
+        self.selected = []
+        self.feed(urlopen(base + path).read().decode())
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if 'id' in attrs:
+            assert attrs['id'] not in self.ids, attrs['id']
+            self.ids.add(attrs['id'])
+        if tag == 'a': self.links.append(attrs.get('href', ''))
+        if tag in ('input', 'select', 'textarea'): self.fields[attrs['name']] = attrs
+        if tag == 'option' and 'selected' in attrs: self.selected.append(attrs.get('value'))
+
+home = Page('/')
+assert {'home', 'about', 'tours', 'destinations', 'booking', 'reviews', 'contact', 'inquiry'} <= home.ids
+assert {'/tours', '/destinations', '/#about', '/#contact', '/#inquiry'} <= set(home.links)
+assert home.fields['email']['type'] == 'email' and 'required' in home.fields['email']
+assert home.fields['guests']['min'] == '1' and 'required' in home.fields['guests']
+catalog = Page('/tours')
+packages = {link for link in catalog.links if link.startswith('/tours/')}
+assert len(packages) == 14, packages
+pages = [home, catalog, Page('/inquire'), Page('/destinations')]
+for path in sorted(packages):
+    page = Page(path)
+    assert 'inquiry' in page.ids and len(page.selected) == 1 and page.selected[0]
+    flyers = [link for link in page.links if link.startswith('/packages/')]
+    assert len(flyers) == 1
+    assert urlopen(base + quote(flyers[0], safe='/%')).headers['Content-Type'].startswith('image/')
+    pages.append(page)
+for slug in ('dumaguete', 'siquijor', 'south-cebu', 'apo-island'):
+    pages.append(Page('/destinations/' + slug))
+for page in pages:
+    for link in page.links:
+        if link.startswith('#'): assert link[1:] in page.ids, link
+        if link.startswith('/#'): assert link[2:] in home.ids, link
+for path in ('/tours/not-a-package', '/destinations/not-a-destination'):
+    try: urlopen(base + path)
+    except HTTPError as error: assert error.code == 404
+    else: raise AssertionError('Expected 404: ' + path)
+function = (Path(__file__).parent / 'app/inquiry-form.tsx').read_text().split('export function inquiryEmail', 1)[1].split('\n}\n', 1)[0]
+script = 'function inquiryEmail' + function.replace('data: FormData', 'data') + '\n}\n' + '''
+const assert = require('node:assert/strict');
+const data = new FormData();
+data.set('name', 'Ana & José'); data.set('package', 'Dumaguete & Valencia');
+data.set('message', 'Pickup?\\nTwo guests & luggage.');
+const url = new URL(inquiryEmail(data));
+assert.equal(url.searchParams.get('subject'), 'Travel inquiry: Dumaguete & Valencia');
+assert.ok(url.searchParams.get('body').includes('Ana & José'));
+assert.ok(url.searchParams.get('body').includes('Pickup?\\nTwo guests & luggage.'));
+data.set('package', '');
+assert.equal(new URL(inquiryEmail(data)).searchParams.get('subject'), 'Travel inquiry: Help me choose a trip');
+'''
+subprocess.run(['node', '-e', script], check=True)
+print('PASS: 14 packages, 4 destinations, form fields, email encoding, anchors, flyers, and 404s')
