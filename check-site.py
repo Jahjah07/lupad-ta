@@ -12,8 +12,10 @@ class Page(HTMLParser):
     def __init__(self, path):
         super().__init__()
         self.ids, self.links, self.fields, self.meta = set(), [], {}, {}
-        self.selected = []
-        self.feed(urlopen(base + path).read().decode())
+        self.selected, self.text = [], []
+        self.sample_testimonials = 0
+        self.html = urlopen(base + path).read().decode()
+        self.feed(self.html)
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
@@ -21,12 +23,21 @@ class Page(HTMLParser):
             assert attrs['id'] not in self.ids, attrs['id']
             self.ids.add(attrs['id'])
         if tag == 'a': self.links.append(attrs.get('href', ''))
+        if tag == 'figure' and 'sample-testimonial' in attrs.get('class', '').split(): self.sample_testimonials += 1
         if tag == 'meta': self.meta[attrs.get('property', attrs.get('name', ''))] = attrs.get('content', '')
         if tag in ('input', 'select', 'textarea'): self.fields[attrs['name']] = attrs
         if tag == 'option' and 'selected' in attrs: self.selected.append(attrs.get('value'))
 
+    def handle_data(self, data):
+        self.text.append(data)
+
 home = Page('/')
-assert {'home', 'about', 'tours', 'destinations', 'booking', 'reviews', 'contact', 'inquiry'} <= home.ids
+assert {'home', 'about', 'tours', 'destinations', 'booking', 'reviews', 'credentials', 'contact', 'inquiry'} <= home.ids
+assert '#credentials' in home.links
+assert home.sample_testimonials == home.text.count('Sample testimonial') == 3
+assert 'testimonial-stage' in home.ids
+assert 'Pending upload' in home.text and 'Pending confirmation' in home.text
+assert {'https://bnrs.dti.gov.ph/search', 'https://accreditation.tourism.gov.ph/help'} <= set(home.links)
 assert {'/tours', '/destinations', '/#about', '/#contact', '/#inquiry'} <= set(home.links)
 assert home.fields['email']['type'] == 'email' and 'required' in home.fields['email']
 assert home.fields['guests']['min'] == '1' and 'required' in home.fields['guests']
@@ -78,4 +89,4 @@ data.set('package', '');
 assert.equal(new URL(inquiryEmail(data)).searchParams.get('subject'), 'Travel inquiry: Help me choose a trip');
 '''
 subprocess.run(['node', '-e', script], check=True)
-print('PASS: 14 packages, combined-destination filters, Messenger, sharing metadata, form fields, email encoding, anchors, flyers, and 404s')
+print('PASS: sample testimonial labels, pending credentials, 14 packages, combined-destination filters, Messenger, sharing metadata, form fields, email encoding, anchors, flyers, and 404s')

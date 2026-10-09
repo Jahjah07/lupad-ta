@@ -10,6 +10,7 @@ Edit app/page.tsx for the homepage, app/tours-data.ts for package content, and a
 Tour flyers are in public/packages, destination photography in public/assets, and the header logo in public/logo.png.
 Header Tours and Destinations open listing pages; About and Contact link to homepage sections, and Inquire Now jumps to the inquiry form.
 The mobile Menu button animates from a hamburger to an X and closes on Escape. Native CSS provides hero entrances, scroll reveals where supported, and mouse hover effects; reduced-motion preferences disable animations, and older browsers keep content visible.
+The homepage includes three clearly labeled sample testimonials in a card carousel, with a featured center card, faded side cards, previous/next buttons, and left/right keyboard controls. A business credentials section is linked from the trust strip. Registration documents, the business permit, DOT accreditation details, and partner affiliations are pending owner-provided details. Replace the sample quotes with permissioned traveler feedback before publishing them as real testimonials.
 The form opens a prefilled email draft in the visitor's email app; visitors must send it there. Facebook and phone are also available.
 Messenger is available directly from the inquiry form and contact section. Direct form delivery, lead storage, and verified on-page reviews are pending a service and review source.
 Destination listings include descriptions and counts, and combined packages appear under every destination they include.
